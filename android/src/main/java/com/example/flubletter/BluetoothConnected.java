@@ -6,7 +6,7 @@ import java.util.UUID;
 
 import io.reactivex.disposables.Disposable;
 
-public class Connected {
+public class BluetoothConnected {
 
     byte[] bytesToWrite;
 
