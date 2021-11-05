@@ -1,5 +1,8 @@
 // ignore_for_file: file_names, avoid_print
 
+import 'dart:convert';
+
+import 'package:flubletter/src/BluetoothScan/DeviceScan.dart';
 import 'package:flubletter/src/BluetoothScan/ScanMode.dart';
 import 'package:flubletter/src/UniqueUid/UniqueUid.dart';
 import 'package:flutter/services.dart';
@@ -12,7 +15,7 @@ class Repository {
     return version;
   }
 
-  Future<bool> get isOn async {
+  Future<bool> isOn() async {
     try {
       bool btisOn = await _channel.invokeMethod('bt-ison');
       return btisOn;
@@ -20,6 +23,10 @@ class Repository {
       print(e);
       return false;
     }
+  }
+
+  void initialize() {
+    _channel.setMethodCallHandler((methodCallBack));
   }
 
   Future<void> get enableBT async {
@@ -32,7 +39,7 @@ class Repository {
 
   Future<void> get disbaleBT async {
     try {
-      await _channel.invokeMethod('disbale-bt');
+      await _channel.invokeMethod('disable-bt');
     } on PlatformException catch (e) {
       print(e);
     }
@@ -52,9 +59,22 @@ class Repository {
     required String mac,
   }) async {
     try {
-      await _channel.invokeMethod('connect-Device');
+      await _channel.invokeMethod('connect-device', {"mac": mac});
     } on PlatformException catch (e) {
       throw Exception('Could not to connect.');
+    }
+  }
+
+  Future<dynamic> methodCallBack(MethodCall call) async {
+    switch (call.method) {
+      case "new-scanned":
+        List<dynamic> list = call.arguments;
+        String macJ = list[0];
+        String namej = list[2];
+        int rssij = list[1];
+        DeviceScan(mac: macJ, rssi: rssij, name: namej);
+        break;
+      default:
     }
   }
 }

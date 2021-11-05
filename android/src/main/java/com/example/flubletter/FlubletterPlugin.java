@@ -11,6 +11,7 @@ import com.example.flubletter.BluetoothADM.BluetoothStatus;
 import com.polidea.rxandroidble2.RxBleClient;
 import com.polidea.rxandroidble2.scan.ScanSettings;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,7 +25,6 @@ import io.reactivex.disposables.Disposable;
  * Service for managing connection and data communication with a GATT server hosted on a
  * given Bluetooth LE device.
  */
-@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
  class FlubletterPlugin implements FlutterPlugin, MethodChannel.MethodCallHandler {
 
 
@@ -118,7 +118,11 @@ import io.reactivex.disposables.Disposable;
                 })
                 .subscribe(
                         rxBleScanResult -> {
-                            // Process scan result here.
+                            List<Object > list = new ArrayList<>();
+                            list.add(rxBleScanResult.getBleDevice().getMacAddress());
+                            list.add(rxBleScanResult.getBleDevice().getName());
+                            list.add(rxBleScanResult.getRssi());
+                            channel.invokeMethod("new-scanned", list);
                         },
                         throwable -> {
                             // Handle an error here.

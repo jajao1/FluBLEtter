@@ -11,6 +11,7 @@ class Flubletter {
   Stream<DeviceScan> scanDevices(
       {required List<UniqueUID> withServices,
       ScanMode scanMode = ScanMode.balanced}) async* {
+    Repository().initialize;
     await Repository().scanDevices(
       withServices: withServices,
       scanMode: scanMode,
