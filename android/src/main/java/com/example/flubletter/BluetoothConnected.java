@@ -1,19 +1,24 @@
 package com.example.flubletter;
 
+
+import static com.example.flubletter.FlubletterPlugin.rxBleClient;
+
 import com.polidea.rxandroidble2.RxBleDevice;
 
 import java.util.UUID;
 
+import io.flutter.plugin.common.MethodChannel;
 import io.reactivex.disposables.Disposable;
 
 public class BluetoothConnected {
 
-    byte[] bytesToWrite;
+    static byte[] bytesToWrite;
 
-    UUID characteristicUuid;
+    static UUID characteristicUuid;
 
-    void onConnectToDevice(RxBleDevice device){
-        Disposable disposable = device.establishConnection(false)
+    public static void onConnectToDevice(String  mac){
+        RxBleDevice device = rxBleClient.getBleDevice(mac);
+        Disposable disposable = device.establishConnection(true)
                 .flatMapSingle(rxBleConnection -> rxBleConnection.readCharacteristic(characteristicUuid)
                         .doOnSuccess(bytes -> {
                             // Process read data.

@@ -1,29 +1,42 @@
 import 'dart:async';
 
-import 'package:flutter/services.dart';
+import 'package:flubletter/src/BluetoothConnection/DeviceDiscovered.dart';
+import 'package:flubletter/src/BluetoothScan/DeviceScan.dart';
+import 'package:flubletter/src/BluetoothScan/ScanMode.dart';
+import 'package:flubletter/src/Repository/Repository.dart';
+import 'package:flubletter/src/UniqueUid/UniqueUid.dart';
 
 class Flubletter {
-  static const MethodChannel _channel = MethodChannel('flubletter');
-
-  static Future<String?> get platformVersion async {
-    final String? version = await _channel.invokeMethod('getPlatformVersion');
-    return version;
+  ///Start Scan
+  Stream<DeviceScan> scanDevices(
+      {required List<UniqueUID> withServices,
+      ScanMode scanMode = ScanMode.balanced}) async* {
+    await Repository().scanDevices(
+      withServices: withServices,
+      scanMode: scanMode,
+    );
   }
 
-  Future<bool> get enableBt async {
-    bool BTisOn = await _channel.invokeMethod('bt-ison');
-    return BTisOn;
+  ///Connect To Device
+  Stream<DeviceDiscovered> connectToDevice({required String mac}) async* {
+    await Repository().connectDevice(
+      mac: mac,
+    );
   }
 
-  Future<void> get enableBT async {
-    await _channel.invokeMethod('enable-bt');
+  ///Checking if Bluetooth is enable
+  Stream<bool> get isOn async* {
+    bool ison = await Repository().isOn();
+    yield ison;
   }
 
-  Future<void> get disbaleBT async {
-    await _channel.invokeMethod('disbale-bt');
+  ///Enable Bluetooth
+  Future<void> enable() async {
+    await Repository().enableBT;
   }
 
-  Future<void> get scanDevices async {
-    await _channel.invokeMethod('scan-bt');
+  ///Disable Bluetooth
+  Future<void> disable() async {
+    await Repository().disbaleBT;
   }
 }

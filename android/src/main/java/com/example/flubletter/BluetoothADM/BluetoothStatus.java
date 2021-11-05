@@ -11,27 +11,27 @@ import androidx.annotation.RequiresApi;
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class BluetoothStatus {
 
-    private Application aplication;
-    private BluetoothAdapter bluetoothAdapter;
-    private BluetoothManager bluetoothManager;
+    private static Application aplication;
+    private static BluetoothAdapter bluetoothAdapter;
+    private static BluetoothManager bluetoothManager;
 
     void initialize(){
         bluetoothManager = (BluetoothManager) aplication.getSystemService(Context.BLUETOOTH_SERVICE);
         bluetoothAdapter = bluetoothManager.getAdapter();
     }
 
-    void enableBT(){
+   public static void enableBT(){
         if (bluetoothAdapter.isEnabled() == false)
             bluetoothAdapter.enable();
     }
 
-    void disableBT(){
+    public static void disableBT(){
         if (bluetoothAdapter.isEnabled())
             bluetoothAdapter.disable();
     }
 
 
-    boolean BTisOn(){
+    public static boolean BTisOn(){
         return bluetoothAdapter.isEnabled();
     }
 }
