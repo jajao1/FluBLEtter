@@ -1,4 +1,4 @@
-package com.example.flubletter.BluetoothADM;
+package com.example.flubletter;
 
 import android.app.Application;
 import android.bluetooth.BluetoothAdapter;
@@ -12,26 +12,25 @@ import androidx.annotation.RequiresApi;
 public class BluetoothStatus {
 
     private static Application aplication;
-    private static BluetoothAdapter bluetoothAdapter;
+    private static BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     private static BluetoothManager bluetoothManager;
+
 
     void initialize(){
         bluetoothManager = (BluetoothManager) aplication.getSystemService(Context.BLUETOOTH_SERVICE);
         bluetoothAdapter = bluetoothManager.getAdapter();
     }
 
-   public static void enableBT(){
-        if (bluetoothAdapter.isEnabled() == false)
-            bluetoothAdapter.enable();
+   public static boolean enableBT(){
+       return bluetoothAdapter.enable();
     }
 
-    public static void disableBT(){
-        if (bluetoothAdapter.isEnabled())
-            bluetoothAdapter.disable();
+    public static boolean disableBT(){
+           return bluetoothAdapter.disable();
     }
 
 
-    public static boolean BTisOn(){
+    public boolean BTisOn(){
         return bluetoothAdapter.isEnabled();
     }
 }

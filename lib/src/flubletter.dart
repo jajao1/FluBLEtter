@@ -1,10 +1,4 @@
-import 'dart:async';
-
-import 'package:flubletter/src/BluetoothConnection/DeviceDiscovered.dart';
-import 'package:flubletter/src/BluetoothScan/DeviceScan.dart';
-import 'package:flubletter/src/BluetoothScan/ScanMode.dart';
-import 'package:flubletter/src/Repository/Repository.dart';
-import 'package:flubletter/src/UniqueUid/UniqueUid.dart';
+part of flubletter;
 
 class Flubletter {
   ///Start Scan
@@ -26,18 +20,17 @@ class Flubletter {
   }
 
   ///Checking if Bluetooth is enable
-  Stream<bool> get isOn async* {
-    bool ison = await Repository().isOn();
-    yield ison;
+  Future<bool> get isOn async {
+    return await Repository.isOn;
   }
 
   ///Enable Bluetooth
-  Future<void> enable() async {
-    await Repository().enableBT;
+  Future<bool> get enable async {
+    return await Repository.enableBT;
   }
 
   ///Disable Bluetooth
-  Future<void> disable() async {
-    await Repository().disbaleBT;
+  Future<bool> get disable async {
+    return await Repository.disbaleBT;
   }
 }

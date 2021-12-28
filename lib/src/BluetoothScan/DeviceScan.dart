@@ -1,5 +1,7 @@
 // ignore_for_file: file_names, constant_identifier_names
 
+part of flubletter;
+
 class DeviceScan {
   ///The device`s MacAddress
   final String mac;

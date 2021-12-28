@@ -1,23 +1,18 @@
 // ignore_for_file: file_names, avoid_print
 
-import 'dart:convert';
-
-import 'package:flubletter/src/BluetoothScan/DeviceScan.dart';
-import 'package:flubletter/src/BluetoothScan/ScanMode.dart';
-import 'package:flubletter/src/UniqueUid/UniqueUid.dart';
-import 'package:flutter/services.dart';
+part of flubletter;
 
 class Repository {
   static const MethodChannel _channel = MethodChannel('flubletter');
 
-  static Future<String?> get platformVersion async {
+  static Future<String?> get platfocrmVersion async {
     final String? version = await _channel.invokeMethod('getPlatformVersion');
     return version;
   }
 
-  Future<bool> isOn() async {
+  static Future<bool> get isOn async {
     try {
-      bool btisOn = await _channel.invokeMethod('bt-ison');
+      bool btisOn = await _channel.invokeMethod('btison');
       return btisOn;
     } on PlatformException catch (e) {
       print(e);
@@ -29,19 +24,21 @@ class Repository {
     _channel.setMethodCallHandler((methodCallBack));
   }
 
-  Future<void> get enableBT async {
+  static Future<bool> get enableBT async {
     try {
-      await _channel.invokeMethod('enable-bt');
+      return await _channel.invokeMethod('enable-bt');
     } on PlatformException catch (e) {
       print(e);
+      return false;
     }
   }
 
-  Future<void> get disbaleBT async {
+  static Future<bool> get disbaleBT async {
     try {
-      await _channel.invokeMethod('disable-bt');
+      return await _channel.invokeMethod('disable-bt');
     } on PlatformException catch (e) {
       print(e);
+      return false;
     }
   }
 
@@ -73,6 +70,7 @@ class Repository {
         String namej = list[2];
         int rssij = list[1];
         DeviceScan(mac: macJ, rssi: rssij, name: namej);
+        print(namej);
         break;
       default:
     }

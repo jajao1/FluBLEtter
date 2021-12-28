@@ -1,4 +1,5 @@
 // ignore_for_file: file_names
+part of flubletter;
 
 enum ScanMode {
   /// passively listen for other scan results without starting BLE scan itself.

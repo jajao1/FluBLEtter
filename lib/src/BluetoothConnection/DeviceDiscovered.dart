@@ -1,11 +1,12 @@
 // ignore_for_file: file_names
+part of flubletter;
 
 class DeviceDiscovered {
   ///The device`s MacAddress
   final String mac;
 
   ///The device`s Connection State
-  final ConnectionState connectionState;
+  final ConnectionStatus connectionState;
 
   const DeviceDiscovered({
     required this.mac,
@@ -13,7 +14,7 @@ class DeviceDiscovered {
   });
 }
 
-enum ConnectionState {
+enum ConnectionStatus {
   ///Connecting to device
   connecting,
 

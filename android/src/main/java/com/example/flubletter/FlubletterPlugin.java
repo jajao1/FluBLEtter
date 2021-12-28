@@ -1,23 +1,31 @@
 package com.example.flubletter;
 
 
+import android.app.Activity;
+import android.app.Application;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothManager;
 import android.content.Context;
-import android.os.Build;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 
-import com.example.flubletter.BluetoothADM.BluetoothStatus;
 import com.polidea.rxandroidble2.RxBleClient;
+import com.polidea.rxandroidble2.RxBleDevice;
+import com.polidea.rxandroidble2.scan.ScanFilter;
 import com.polidea.rxandroidble2.scan.ScanSettings;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import io.flutter.Log;
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
+import io.flutter.embedding.engine.plugins.activity.ActivityAware;
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
+import io.flutter.plugin.common.PluginRegistry;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
@@ -25,21 +33,30 @@ import io.reactivex.disposables.Disposable;
  * Service for managing connection and data communication with a GATT server hosted on a
  * given Bluetooth LE device.
  */
- class FlubletterPlugin implements FlutterPlugin, MethodChannel.MethodCallHandler {
-
+ public class FlubletterPlugin implements FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAware {
 
     public MethodChannel channel;
 
     private static Context context;
 
-    static RxBleClient rxBleClient = RxBleClient.create(context);
+    static RxBleClient rxBleClient;
 
-    byte[] bytesToWrite;
+    private static Application application;
 
-    UUID characteristicUuid;
+    BluetoothStatus bluetoothStatus = new BluetoothStatus();
 
-    boolean auto = false;
+    private static final String TAG = "Flubletter";
 
+    private static UUID uuid = UUID.fromString("4fafc201-1fb5-459e-8fcc-c5c9c331914b");
+
+
+    private Disposable scanDisposable;
+
+
+    public static void registerWith(PluginRegistry.Registrar registrar) {
+        context = registrar.activity().getApplicationContext();
+        application = registrar.activity().getApplication();
+    }
 
 
 
@@ -56,16 +73,16 @@ import io.reactivex.disposables.Disposable;
                 result.success("Android " + android.os.Build.VERSION.RELEASE);
                 break;
             }
-            case "bt-ison": {
-                result.success(BluetoothStatus.BTisOn());
+            case "btison": {
+                result.success(bluetoothStatus.BTisOn());
                 break;
             }
             case "enable-bt": {
-                BluetoothStatus.enableBT();
+                result.success(bluetoothStatus.enableBT());
                 break;
             }
             case "disable-bt": {
-                BluetoothStatus.disableBT();
+                result.success(bluetoothStatus.disableBT());
                 break;
             }
             case "scan-bt": {
@@ -74,16 +91,17 @@ import io.reactivex.disposables.Disposable;
             }
             case "connect-device": {
                 String mac = call.argument("mac");
-                BluetoothConnected.onConnectToDevice(mac);
+                onConnectToDevice(mac);
                 break;
             }
             default: {
                 result.notImplemented();
                 break;
             }
-            
+
         }
     }
+
 
 
     @Override
@@ -91,47 +109,52 @@ import io.reactivex.disposables.Disposable;
         channel.setMethodCallHandler(null);
     }
 
-    public static void scanDevices(MethodChannel channel){
-        Disposable flowDisposable = rxBleClient.observeStateChanges()
-                .switchMap(state -> { // switchMap makes sure that if the state will change the rxBleClient.scanBleDevices() will dispose and thus end the scan
-                    switch (state) {
 
-                        case READY:
-                            // everything should work
-                            return rxBleClient.scanBleDevices(
-                                    new ScanSettings.Builder()
-                                            // .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY) // change if needed
-                                            // .setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES) // change if needed
-                                            .build()
-                            );
-                        case BLUETOOTH_NOT_AVAILABLE:
-                            // basically no functionality will work here
-                        case LOCATION_PERMISSION_NOT_GRANTED:
-                            // scanning and connecting will not work
-                        case BLUETOOTH_NOT_ENABLED:
-                            // scanning and connecting will not work
-                        case LOCATION_SERVICES_NOT_ENABLED:
-                            // scanning will not work
-                        default:
-                            return Observable.empty();
-                    }
-                })
+    @Override
+    public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
+        context = binding.getActivity().getApplicationContext();
+        application = binding.getActivity().getApplication();
+        rxBleClient = RxBleClient.create(binding.getActivity().getApplicationContext());
+
+    }
+
+    @Override
+    public void onDetachedFromActivityForConfigChanges() {
+
+    }
+
+    @Override
+    public void onReattachedToActivityForConfigChanges(@NonNull ActivityPluginBinding binding) {
+
+    }
+
+    @Override
+    public void onDetachedFromActivity() {
+
+    }
+
+    private void onConnectToDevice(String mac) {
+    }
+
+
+    private void scanDevices(MethodChannel channel) {
+        scanDisposable = rxBleClient.scanBleDevices(
+                new ScanSettings.Builder()
+                        .setScanMode(ScanSettings.SCAN_MODE_BALANCED)
+                        .setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES)
+                        .build(),
+                new ScanFilter.Builder()
+//                            .setDeviceAddress("B4:99:4C:34:DC:8B")
+                        // add custom filters if needed
+                        .build()
+        )
                 .subscribe(
-                        rxBleScanResult -> {
-                            List<Object > list = new ArrayList<>();
-                            list.add(rxBleScanResult.getBleDevice().getMacAddress());
-                            list.add(rxBleScanResult.getBleDevice().getName());
-                            list.add(rxBleScanResult.getRssi());
-                            channel.invokeMethod("new-scanned", list);
+                        scanResult -> {
+                            Log.e(TAG, scanResult.getBleDevice().getName());
                         },
                         throwable -> {
                             // Handle an error here.
                         }
                 );
-
-// When done, just dispose.
-        flowDisposable.dispose();
     }
-
-
 }
