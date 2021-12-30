@@ -1,32 +1,26 @@
 package com.example.flubletter;
 
 
-import android.app.Activity;
 import android.app.Application;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothManager;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
 
 import com.polidea.rxandroidble2.RxBleClient;
-import com.polidea.rxandroidble2.RxBleDevice;
 import com.polidea.rxandroidble2.scan.ScanFilter;
 import com.polidea.rxandroidble2.scan.ScanSettings;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
-import io.flutter.Log;
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.embedding.engine.plugins.activity.ActivityAware;
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.PluginRegistry;
-import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
 /**
@@ -51,6 +45,8 @@ import io.reactivex.disposables.Disposable;
 
 
     private Disposable scanDisposable;
+
+    boolean auto = false;
 
 
     public static void registerWith(PluginRegistry.Registrar registrar) {
@@ -87,6 +83,7 @@ import io.reactivex.disposables.Disposable;
             }
             case "scan-bt": {
                 scanDevices(channel);
+                result.success("scan begin");
                 break;
             }
             case "connect-device": {
@@ -150,7 +147,11 @@ import io.reactivex.disposables.Disposable;
         )
                 .subscribe(
                         scanResult -> {
-                            Log.e(TAG, scanResult.getBleDevice().getName());
+                            List<Object> list = new ArrayList<Object>();
+                                list.add(scanResult.getBleDevice().getMacAddress());
+                                list.add(scanResult.getBleDevice().getName());
+                                list.add(scanResult.getRssi());
+                                channel.invokeMethod("new-scanned", list);
                         },
                         throwable -> {
                             // Handle an error here.

@@ -10,7 +10,7 @@ class DeviceScan {
   final String name;
 
   ///The device`s RSSI
-  final int rssi;
+  final num rssi;
 
   const DeviceScan({
     required this.mac,

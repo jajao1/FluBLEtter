@@ -1,20 +1,21 @@
 part of flubletter;
 
 class Flubletter {
+  final Repository _repository = Repository();
+
+  final Scanner _scanner = Scanner();
+
   ///Start Scan
   Stream<DeviceScan> scanDevices(
       {required List<UniqueUID> withServices,
       ScanMode scanMode = ScanMode.balanced}) async* {
-    Repository().initialize;
-    await Repository().scanDevices(
-      withServices: withServices,
-      scanMode: scanMode,
-    );
+    _repository.scanDevices(withServices: withServices, scanMode: scanMode);
+    yield* _repository.scanResult;
   }
 
   ///Connect To Device
   Stream<DeviceDiscovered> connectToDevice({required String mac}) async* {
-    await Repository().connectDevice(
+    await _repository.connectDevice(
       mac: mac,
     );
   }

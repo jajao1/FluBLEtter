@@ -5,6 +5,12 @@ part of flubletter;
 class Repository {
   static const MethodChannel _channel = MethodChannel('flubletter');
 
+  DeviceScan? deviceScan;
+
+  bool flagnewdevice = false;
+
+  final Scanner _scanner = Scanner();
+
   static Future<String?> get platfocrmVersion async {
     final String? version = await _channel.invokeMethod('getPlatformVersion');
     return version;
@@ -46,6 +52,7 @@ class Repository {
       {required List<UniqueUID> withServices,
       ScanMode scanMode = ScanMode.balanced}) async {
     try {
+      initialize();
       await _channel.invokeMethod('scan-bt');
     } on PlatformException catch (e) {
       throw Exception('Could not start the scan.');
@@ -67,12 +74,15 @@ class Repository {
       case "new-scanned":
         List<dynamic> list = call.arguments;
         String macJ = list[0];
-        String namej = list[2];
-        int rssij = list[1];
-        DeviceScan(mac: macJ, rssi: rssij, name: namej);
-        print(namej);
+        String namej = list[1];
+        num rssij = list[2];
+        _scanner.newDevice(DeviceScan(mac: macJ, name: namej, rssi: rssij));
         break;
       default:
     }
+  }
+
+  Stream<DeviceScan> get scanResult async* {
+    yield* _scanner.scanResult.stream;
   }
 }

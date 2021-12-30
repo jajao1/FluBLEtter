@@ -18,8 +18,10 @@ class _MyAppState extends State<MyApp> {
   List<DeviceScan> scanDevices = [];
   StreamSubscription<DeviceScan>? streamscan;
   StreamSubscription<DeviceDiscovered>? device;
+  List<String> macs = [];
+  bool scanning = false;
 
-  String status = 'desconectado';
+  String status = 'Disconnected';
 
   @override
   void initState() {
@@ -27,11 +29,20 @@ class _MyAppState extends State<MyApp> {
     super.initState();
   }
 
-  Future<void> initScan() async {
+  void initScan() {
     streamscan = flubletter.scanDevices(withServices: []).listen((device) {
-      setState(() {
-        scanDevices.add(device);
-      });
+      if (macs.contains(device.mac)) {
+        var oldDeviceValue = scanDevices
+            .singleWhere((deviceScan) => deviceScan.mac == deviceScan.mac);
+        setState(() {
+          scanDevices[scanDevices.indexOf(oldDeviceValue)] = device;
+        });
+      } else {
+        setState(() {
+          macs.add(device.mac);
+          scanDevices.add(device);
+        });
+      }
     });
   }
 
@@ -41,22 +52,22 @@ class _MyAppState extends State<MyApp> {
       switch (connection.connectionState) {
         case ConnectionStatus.connecting:
           setState(() {
-            status = 'conectando a ${deviceScan.name}';
+            status = 'Connecting ${deviceScan.name}';
           });
           break;
         case ConnectionStatus.connected:
           setState(() {
-            status = 'conectado a ${deviceScan.name}';
+            status = 'connected ${deviceScan.name}';
           });
           break;
         case ConnectionStatus.disconnecting:
           setState(() {
-            status = 'desconectando de ${deviceScan.name}';
+            status = 'disconnecting  ${deviceScan.name}';
           });
           break;
         case ConnectionStatus.disconnected:
           setState(() {
-            status = 'desconectado de ${deviceScan.name}';
+            status = 'disconnected ${deviceScan.name}';
           });
           break;
         default:
@@ -67,54 +78,85 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       home: Scaffold(
         appBar: AppBar(
-          title: Text(status),
+          title: const Text('Flubletter plugin example'),
+          actions: <Widget>[
+            scanning
+                ? TextButton(
+                    onPressed: () {
+                      setState(() {
+                        scanning = false;
+                      });
+                    },
+                    child: const Icon(
+                      Icons.stop,
+                      color: Colors.white,
+                    ),
+                  )
+                : TextButton(
+                    onPressed: () {
+                      setState(() {
+                        status = 'Scanning';
+                        scanning = true;
+                      });
+                      initScan();
+                    },
+                    child: const Icon(
+                      Icons.search,
+                      color: Colors.white,
+                    ),
+                  ),
+          ],
         ),
         body: Column(
           children: <Widget>[
             Padding(
               padding: const EdgeInsets.all(20),
-              child: ElevatedButton(
-                onPressed: () => initScan(),
-                style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10))),
-                child: Ink(
-                  decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [Colors.blue, Colors.blueAccent]),
-                      borderRadius: BorderRadius.circular(10)),
-                  child: Container(
-                    width: 100,
-                    height: 50,
-                    alignment: Alignment.center,
-                    child: const Text(
-                      'NOVO GATEWAY',
-                      style: TextStyle(
-                          fontFamily: 'Schyler',
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16),
-                    ),
-                  ),
-                ),
+              child: Text(
+                status,
+                style: const TextStyle(color: Colors.black, fontSize: 20),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.all(20),
+              child: Text(
+                'Discovered devices ',
+                style: TextStyle(color: Colors.black, fontSize: 15),
               ),
             ),
             Expanded(
               child: ListView.builder(
                 itemCount: scanDevices.length,
                 itemBuilder: (BuildContext context, int index) {
-                  return ListTile(
-                    title: Text(
-                      scanDevices[index].name,
-                    ),
-                    subtitle: Text(
-                      scanDevices[index].mac,
-                    ),
+                  return Column(
+                    children: <Widget>[
+                      Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: ListTile(
+                              title: Text(
+                                scanDevices[index].name,
+                              ),
+                              subtitle: Text(
+                                scanDevices[index].mac,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                              child: Padding(
+                                  padding: const EdgeInsets.only(right: 20),
+                                  child: Align(
+                                    alignment: Alignment.centerRight,
+                                    child: Text(
+                                      '${scanDevices[index].rssi}dBm',
+                                      style: const TextStyle(color: Colors.red),
+                                    ),
+                                  ))),
+                        ],
+                      ),
+                    ],
                   );
                 },
               ),
