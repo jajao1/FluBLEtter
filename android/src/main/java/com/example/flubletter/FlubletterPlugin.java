@@ -21,6 +21,7 @@ import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.PluginRegistry;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 
 /**
@@ -47,6 +48,9 @@ import io.reactivex.disposables.Disposable;
     private Disposable scanDisposable;
 
     boolean auto = false;
+
+    BluetoothConnection bluetoothConnection = new BluetoothConnection();
+
 
 
     public static void registerWith(PluginRegistry.Registrar registrar) {
@@ -88,7 +92,27 @@ import io.reactivex.disposables.Disposable;
             }
             case "connect-device": {
                 String mac = call.argument("mac");
-                onConnectToDevice(mac);
+                bluetoothConnection.onConnectToDevice(mac, false, channel);
+                result.success("connect to device");
+                break;
+            }
+            case "read": {
+                UUID uuidRead = call.argument("uuidRead");
+                bluetoothConnection.onCharacteristicRead(uuidRead);
+                result.success("read");
+                break;
+            }
+            case "write": {
+                String uuidWrite = call.argument("uuidWrite");
+                String data = call.argument("data");
+                bluetoothConnection.onCharacteristicWrite(data.getBytes(), UUID.fromString(uuidWrite));
+                result.success("write");
+                break;
+            }
+
+            case "disconnect": {
+                bluetoothConnection.disconnect();
+                result.success("disconnected");
                 break;
             }
             default: {
@@ -130,9 +154,6 @@ import io.reactivex.disposables.Disposable;
 
     }
 
-    private void onConnectToDevice(String mac) {
-    }
-
 
     private void scanDevices(MethodChannel channel) {
         scanDisposable = rxBleClient.scanBleDevices(
@@ -145,6 +166,7 @@ import io.reactivex.disposables.Disposable;
                         // add custom filters if needed
                         .build()
         )
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         scanResult -> {
                             List<Object> list = new ArrayList<Object>();

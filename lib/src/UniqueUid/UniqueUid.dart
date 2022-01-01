@@ -59,7 +59,7 @@ class UniqueUID {
       data.fold(17, (hash, octet) => 37 * hash + octet.hashCode);
 
   @override
-  operator ==(other) => other is UniqueUID && this.hashCode == other.hashCode;
+  operator ==(other) => other is UniqueUID && hashCode == other.hashCode;
 }
 
 class _UuidParseFailure implements Exception {

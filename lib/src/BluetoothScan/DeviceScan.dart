@@ -18,20 +18,3 @@ class DeviceScan {
     required this.rssi,
   });
 }
-
-enum ObserveStateChanges {
-  ///Bluetooth for this device is not available
-  bluetooth_not_avaible,
-
-  ///The location permission not granted
-  location_permission_not_granted,
-
-  ///Bluetooth for this device is not enable
-  bluetooth_not_enable,
-
-  ///Location services not enable
-  location_services_not_enable,
-
-  ///
-  ready,
-}

@@ -3,8 +3,6 @@ part of flubletter;
 class Flubletter {
   final Repository _repository = Repository();
 
-  final Scanner _scanner = Scanner();
-
   ///Start Scan
   Stream<DeviceScan> scanDevices(
       {required List<UniqueUID> withServices,
@@ -18,6 +16,16 @@ class Flubletter {
     await _repository.connectDevice(
       mac: mac,
     );
+    yield* _repository.deviceState;
+  }
+
+  Future<void> onCharacteristicWrite(
+      {required String uuidWrite, required String data}) async {
+    await _repository.onCharacteristicWrite(uuidWrite: uuidWrite, data: data);
+  }
+
+  Future<void> disconnect() async {
+    await _repository.disconnect();
   }
 
   ///Checking if Bluetooth is enable

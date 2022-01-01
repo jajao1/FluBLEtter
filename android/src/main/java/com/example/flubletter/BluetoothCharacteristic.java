@@ -2,26 +2,27 @@ package com.example.flubletter;
 
 import android.util.Log;
 
+import com.polidea.rxandroidble2.RxBleConnection;
 import com.polidea.rxandroidble2.RxBleDevice;
 
 import java.util.UUID;
 
 import io.flutter.plugin.common.MethodChannel;
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 
 public class BluetoothCharacteristic {
 
-    private RxBleDevice device;
-
-    UUID characteristicUuid;
 
     private Disposable readDisposable;
 
     private Disposable writeDisposable;
 
-    public void onCharacteristicRead(byte[] bytes, MethodChannel channel){
-        readDisposable = device.establishConnection(false)
+    public void onCharacteristicRead(MethodChannel channel, UUID characteristicUuid, Observable<RxBleConnection> connectionObservable){
+        readDisposable = connectionObservable
                 .flatMapSingle(rxBleConnection -> rxBleConnection.readCharacteristic(characteristicUuid))
+        .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         characteristicValue -> {
                             channel.invokeMethod("new-read", characteristicValue);
@@ -32,9 +33,11 @@ public class BluetoothCharacteristic {
                 );
     }
 
-    public void onCharacteristicWrite(byte[] data){
-        writeDisposable = device.establishConnection(false)
-                .flatMapSingle(rxBleConnection -> rxBleConnection.writeCharacteristic(characteristicUuid, data))
+    public void onCharacteristicWrite(byte[] data, UUID characteristicUuid, Observable<RxBleConnection> connectionObservable){
+        writeDisposable = connectionObservable
+                .firstOrError()
+                .flatMap(rxBleConnection -> rxBleConnection.writeCharacteristic(characteristicUuid, data))
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         characteristicValue -> {
                         },

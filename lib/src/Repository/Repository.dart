@@ -11,6 +11,8 @@ class Repository {
 
   final Scanner _scanner = Scanner();
 
+  final Connection _connection = Connection();
+
   static Future<String?> get platfocrmVersion async {
     final String? version = await _channel.invokeMethod('getPlatformVersion');
     return version;
@@ -65,7 +67,33 @@ class Repository {
     try {
       await _channel.invokeMethod('connect-device', {"mac": mac});
     } on PlatformException catch (e) {
-      throw Exception('Could not to connect.');
+      throw Exception(e);
+    }
+  }
+
+  Future<void> onCharacteristicRead({required UniqueUID uuidRead}) async {
+    try {
+      await _channel.invokeMethod('read', {"uuidRead": uuidRead});
+    } on PlatformException catch (e) {
+      throw Exception(e);
+    }
+  }
+
+  Future<void> onCharacteristicWrite(
+      {required String uuidWrite, required String data}) async {
+    try {
+      await _channel
+          .invokeMethod('write', {"uuidWrite": uuidWrite, "data": data});
+    } on PlatformException catch (e) {
+      throw Exception(e);
+    }
+  }
+
+  Future<void> disconnect() async {
+    try {
+      await _channel.invokeMethod('disconnect');
+    } on PlatformException catch (e) {
+      throw Exception(e);
     }
   }
 
@@ -78,11 +106,20 @@ class Repository {
         num rssij = list[2];
         _scanner.newDevice(DeviceScan(mac: macJ, name: namej, rssi: rssij));
         break;
+      case "new-state":
+        num state = call.arguments;
+        print(state);
+        _connection.deviceState.add(DeviceDiscovered.deviceDiscovered(state));
+        break;
       default:
     }
   }
 
   Stream<DeviceScan> get scanResult async* {
     yield* _scanner.scanResult.stream;
+  }
+
+  Stream<DeviceDiscovered> get deviceState async* {
+    yield* _connection.deviceState.stream;
   }
 }

@@ -5,8 +5,6 @@ part of flubletter;
 abstract class _Scanner {
   BehaviorSubject<DeviceScan> scanResult = BehaviorSubject<DeviceScan>();
 
-  final Repository _repository = Repository();
-
   void newDevice(DeviceScan deviceScan) {
     scanResult.add(deviceScan);
   }
@@ -20,7 +18,4 @@ class Scanner implements _Scanner {
   void newDevice(DeviceScan deviceScan) {
     scanResult.add(deviceScan);
   }
-
-  @override
-  Repository get _repository => Repository();
 }

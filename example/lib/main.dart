@@ -20,6 +20,7 @@ class _MyAppState extends State<MyApp> {
   StreamSubscription<DeviceDiscovered>? device;
   List<String> macs = [];
   bool scanning = false;
+  String uniqueUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
 
   String status = 'Disconnected';
 
@@ -27,6 +28,10 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     scanDevices = [];
     super.initState();
+  }
+
+  Future<void> write() async {
+    await flubletter.onCharacteristicWrite(uuidWrite: uniqueUID, data: 'LULA');
   }
 
   void initScan() {
@@ -48,7 +53,7 @@ class _MyAppState extends State<MyApp> {
 
   void connectOnDevice(DeviceScan deviceScan) {
     device =
-        flubletter.connectToDevice(mac: deviceScan.name).listen((connection) {
+        flubletter.connectToDevice(mac: deviceScan.mac).listen((connection) {
       switch (connection.connectionState) {
         case ConnectionStatus.connecting:
           setState(() {
@@ -86,6 +91,7 @@ class _MyAppState extends State<MyApp> {
             scanning
                 ? TextButton(
                     onPressed: () {
+                      flubletter.disconnect();
                       setState(() {
                         scanning = false;
                       });
@@ -130,37 +136,42 @@ class _MyAppState extends State<MyApp> {
               child: ListView.builder(
                 itemCount: scanDevices.length,
                 itemBuilder: (BuildContext context, int index) {
-                  return Column(
-                    children: <Widget>[
-                      Row(
-                        children: <Widget>[
-                          Expanded(
-                            child: ListTile(
-                              title: Text(
-                                scanDevices[index].name,
-                              ),
-                              subtitle: Text(
-                                scanDevices[index].mac,
+                  return InkWell(
+                    onTap: () => connectOnDevice(scanDevices[index]),
+                    child: Column(
+                      children: <Widget>[
+                        Row(
+                          children: <Widget>[
+                            Expanded(
+                              child: ListTile(
+                                title: Text(
+                                  scanDevices[index].name,
+                                ),
+                                subtitle: Text(
+                                  scanDevices[index].mac,
+                                ),
                               ),
                             ),
-                          ),
-                          Expanded(
-                              child: Padding(
-                                  padding: const EdgeInsets.only(right: 20),
-                                  child: Align(
-                                    alignment: Alignment.centerRight,
-                                    child: Text(
-                                      '${scanDevices[index].rssi}dBm',
-                                      style: const TextStyle(color: Colors.red),
-                                    ),
-                                  ))),
-                        ],
-                      ),
-                    ],
+                            Expanded(
+                                child: Padding(
+                                    padding: const EdgeInsets.only(right: 20),
+                                    child: Align(
+                                      alignment: Alignment.centerRight,
+                                      child: Text(
+                                        '${scanDevices[index].rssi}dBm',
+                                        style:
+                                            const TextStyle(color: Colors.red),
+                                      ),
+                                    ))),
+                          ],
+                        ),
+                      ],
+                    ),
                   );
                 },
               ),
             ),
+            TextButton(onPressed: () => write(), child: const Text('write'))
           ],
         ),
       ),

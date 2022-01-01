@@ -2,16 +2,39 @@
 part of flubletter;
 
 class DeviceDiscovered {
-  ///The device`s MacAddress
-  final String mac;
-
   ///The device`s Connection State
   final ConnectionStatus connectionState;
 
   const DeviceDiscovered({
-    required this.mac,
     required this.connectionState,
   });
+  factory DeviceDiscovered.deviceDiscovered(num connectionState) {
+    switch (connectionState) {
+      case 1:
+        {
+          return const DeviceDiscovered(
+              connectionState: ConnectionStatus.connected);
+        }
+      case -1:
+        {
+          return const DeviceDiscovered(
+              connectionState: ConnectionStatus.disconnected);
+        }
+      case 0:
+        {
+          return const DeviceDiscovered(
+              connectionState: ConnectionStatus.connecting);
+        }
+      case 2:
+        {
+          return const DeviceDiscovered(
+              connectionState: ConnectionStatus.disconnecting);
+        }
+      default:
+        return const DeviceDiscovered(
+            connectionState: ConnectionStatus.disconnected);
+    }
+  }
 }
 
 enum ConnectionStatus {

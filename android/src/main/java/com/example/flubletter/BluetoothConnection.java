@@ -4,14 +4,19 @@ import static com.example.flubletter.FlubletterPlugin.rxBleClient;
 
 import android.util.Log;
 
+import io.reactivex.disposables.CompositeDisposable;
+
+import com.jakewharton.rx.ReplayingShare;
 import com.polidea.rxandroidble2.RxBleConnection;
 import com.polidea.rxandroidble2.RxBleDevice;
 
 import java.util.UUID;
 
 import io.flutter.plugin.common.MethodChannel;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.Observable;
+import io.reactivex.subjects.PublishSubject;
 
 
 public class BluetoothConnection {
@@ -26,17 +31,28 @@ public class BluetoothConnection {
 
     private Disposable stateDisposable;
 
-    UUID characteristicUuid;
-
-    private BluetoothCharacteristic bluetoothCharacteristic = new BluetoothCharacteristic();
+    private PublishSubject<Boolean> disconnectTriggerSubject = PublishSubject.create();
 
     private MethodChannel channel;
 
-    RxBleConnection BleConnection;
+    private RxBleConnection BleConnection;
 
-    private void onConnectToDevice(String mac, boolean auto) {
+    private Observable<RxBleConnection> connectionObservable;
+
+    private BluetoothCharacteristic bluetoothCharacteristic = new BluetoothCharacteristic();
+
+    private void initConnect(String mac, MethodChannel channel){
+        this.channel = channel;
         device = rxBleClient.getBleDevice(mac);
-        disposable = device.establishConnection(auto) // <-- autoConnect flag
+        onConnectState();
+        connectionObservable = prepareConnectionObservable();
+    }
+
+    public void onConnectToDevice(String mac, boolean auto, MethodChannel channel) {
+        initConnect(mac, channel);
+        onConnectState();
+        disposable = connectionObservable
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         rxBleConnection -> {
                             BleConnection =  rxBleConnection;
@@ -47,11 +63,24 @@ public class BluetoothConnection {
                 );
     }
 
+    private Observable<RxBleConnection> prepareConnectionObservable() {
+        return device
+                .establishConnection(false)
+                .takeUntil(disconnectTriggerSubject)
+                .compose(ReplayingShare.instance());
+    }
+
+    private void triggerDisconnect() {
+        disconnectTriggerSubject.onNext(true);
+    }
+
     private void onConnectState(){
         stateDisposable = device.observeConnectionStateChanges()
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         connectionState -> {
                             state = connectionState;
+                            channel.invokeMethod("new-state", connectionState());
                         },
                         throwable -> {
                             onConnectionFailure(throwable);
@@ -60,8 +89,16 @@ public class BluetoothConnection {
 
     }
 
+    public void onCharacteristicRead(UUID characteristicUuid){
+        bluetoothCharacteristic.onCharacteristicRead(channel, characteristicUuid, connectionObservable);
+    }
 
-    private float connectionState(){
+    public void onCharacteristicWrite(byte[] data, UUID characteristicUuid){
+        bluetoothCharacteristic.onCharacteristicWrite(data, characteristicUuid, connectionObservable);
+    }
+
+
+    private Object connectionState(){
        switch (state){
            case CONNECTED:
            {
@@ -84,13 +121,14 @@ public class BluetoothConnection {
     }
 
     public void disconnect() {
+        triggerDisconnect();
         disposable.dispose();
+        stateDisposable.dispose();
     }
 
 
     private boolean isConnected() {
             return device.getConnectionState() == RxBleConnection.RxBleConnectionState.CONNECTED;
-
     }
 
     private void onConnectionFailure(Throwable throwable) {
