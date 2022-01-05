@@ -18,3 +18,13 @@ class DeviceScan {
     required this.rssi,
   });
 }
+
+enum ScanMode {
+  opportunistic,
+
+  lowPower,
+
+  balanced,
+
+  lowLatency,
+}

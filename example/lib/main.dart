@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:flubletter/flubletter.dart';
@@ -64,6 +62,7 @@ class _MyAppState extends State<MyApp> {
           break;
         case ConnectionStatus.connected:
           flubletter.onCharacteristicRead(uuidRead: uniqueUID).listen((data) {
+            // ignore: avoid_print
             print(String.fromCharCodes(data));
           });
           setState(() {
