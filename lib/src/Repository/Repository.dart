@@ -13,6 +13,8 @@ class Repository {
 
   final Connection _connection = Connection();
 
+  BehaviorSubject<List<int>> dataRead = BehaviorSubject<List<int>>();
+
   static Future<String?> get platfocrmVersion async {
     final String? version = await _channel.invokeMethod('getPlatformVersion');
     return version;
@@ -51,13 +53,13 @@ class Repository {
   }
 
   Future<void> scanDevices(
-      {required List<UniqueUID> withServices,
+      {required List<UUID> withServices,
       ScanMode scanMode = ScanMode.balanced}) async {
     try {
       initialize();
       await _channel.invokeMethod('scan-bt');
     } on PlatformException catch (e) {
-      throw Exception('Could not start the scan.');
+      throw Exception(e);
     }
   }
 
@@ -71,7 +73,7 @@ class Repository {
     }
   }
 
-  Future<void> onCharacteristicRead({required UniqueUID uuidRead}) async {
+  Future<void> onCharacteristicRead({required String uuidRead}) async {
     try {
       await _channel.invokeMethod('read', {"uuidRead": uuidRead});
     } on PlatformException catch (e) {
@@ -108,8 +110,11 @@ class Repository {
         break;
       case "new-state":
         num state = call.arguments;
-        print(state);
         _connection.deviceState.add(DeviceDiscovered.deviceDiscovered(state));
+        break;
+      case "new-read":
+        List<int> data = call.arguments;
+        dataRead.add(data);
         break;
       default:
     }
@@ -121,5 +126,9 @@ class Repository {
 
   Stream<DeviceDiscovered> get deviceState async* {
     yield* _connection.deviceState.stream;
+  }
+
+  Stream<List<int>> get dataReadStream async* {
+    yield* dataRead.stream;
   }
 }

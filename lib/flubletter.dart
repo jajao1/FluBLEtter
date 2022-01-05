@@ -6,7 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:convert/convert.dart';
 
-part 'src/UniqueUid/UniqueUid.dart';
+part 'src/UUID/UUID.dart';
+part 'src/UUID/teste.dart';
 part 'src/Repository/Repository.dart';
 part 'src/BluetoothScan/ScanMode.dart';
 part 'src/BluetoothScan/DeviceScan.dart';

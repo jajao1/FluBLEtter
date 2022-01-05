@@ -5,7 +5,7 @@ class Flubletter {
 
   ///Start Scan
   Stream<DeviceScan> scanDevices(
-      {required List<UniqueUID> withServices,
+      {required List<UUID> withServices,
       ScanMode scanMode = ScanMode.balanced}) async* {
     _repository.scanDevices(withServices: withServices, scanMode: scanMode);
     yield* _repository.scanResult;
@@ -22,6 +22,13 @@ class Flubletter {
   Future<void> onCharacteristicWrite(
       {required String uuidWrite, required String data}) async {
     await _repository.onCharacteristicWrite(uuidWrite: uuidWrite, data: data);
+  }
+
+  Stream<List<int>> onCharacteristicRead({required String uuidRead}) async* {
+    await _repository.onCharacteristicRead(
+      uuidRead: uuidRead,
+    );
+    yield* _repository.dataReadStream;
   }
 
   Future<void> disconnect() async {

@@ -97,8 +97,8 @@ import io.reactivex.disposables.Disposable;
                 break;
             }
             case "read": {
-                UUID uuidRead = call.argument("uuidRead");
-                bluetoothConnection.onCharacteristicRead(uuidRead);
+                String uuidRead = call.argument("uuidRead");
+                bluetoothConnection.onCharacteristicRead(UUID.fromString(uuidRead));
                 result.success("read");
                 break;
             }

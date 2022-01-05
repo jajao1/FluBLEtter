@@ -2,12 +2,11 @@
 
 part of flubletter;
 
-class UniqueUID {
+class UUID {
   final Uint8List data;
 
-  UniqueUID(List<int> data) : data = Uint8List.fromList(data);
-
-  factory UniqueUID.parse(String string) {
+  UUID(List<int> data) : data = Uint8List.fromList(data);
+  factory UUID.parse(String string) {
     final data = Uint8List(16);
 
     var byteOffset = 0;
@@ -17,16 +16,23 @@ class UniqueUID {
         continue;
       }
 
+      if (byteOffset >= 16 || substringStart + 2 > string.length) {
+        throw _UuidParseFailure(string);
+      }
+
       final byte = int.tryParse(
         string.substring(substringStart, substringStart + 2),
         radix: 16,
       );
+      if (byte == null) throw _UuidParseFailure(string);
+
+      data[byteOffset] = byte;
 
       byteOffset += 1;
       substringStart += 2;
     }
     if (byteOffset == 2 || byteOffset == 4 || byteOffset == 16) {
-      return UniqueUID(data.buffer.asUint8List(0, byteOffset));
+      return UUID(data.buffer.asUint8List(0, byteOffset));
     } else {
       throw _UuidParseFailure(string);
     }
@@ -59,7 +65,7 @@ class UniqueUID {
       data.fold(17, (hash, octet) => 37 * hash + octet.hashCode);
 
   @override
-  operator ==(other) => other is UniqueUID && hashCode == other.hashCode;
+  operator ==(other) => other is UUID && hashCode == other.hashCode;
 }
 
 class _UuidParseFailure implements Exception {

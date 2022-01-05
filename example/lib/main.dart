@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:flubletter/flubletter.dart';
@@ -61,6 +63,9 @@ class _MyAppState extends State<MyApp> {
           });
           break;
         case ConnectionStatus.connected:
+          flubletter.onCharacteristicRead(uuidRead: uniqueUID).listen((data) {
+            print(String.fromCharCodes(data));
+          });
           setState(() {
             status = 'connected ${deviceScan.name}';
           });
@@ -169,6 +174,11 @@ class _MyAppState extends State<MyApp> {
                     ),
                   );
                 },
+              ),
+            ),
+            const Center(
+              child: Text(
+                '',
               ),
             ),
             TextButton(onPressed: () => write(), child: const Text('write'))
