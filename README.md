@@ -1,6 +1,6 @@
 # flubletter
 
-A new Flutter project.
+Package criado apenas para o desenvolvimento das habilidades no flutter, atualmente encotra-se incompleta porem funcional.
 
 ## Getting Started
 
