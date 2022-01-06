@@ -1,6 +1,6 @@
 # flubletter
 
-Package criado apenas para o desenvolvimento das habilidades no flutter, atualmente encotra-se incompleta porem funcional.
+Package criado apenas para o desenvolvimento das habilidades no flutter, atualmente encontra-se incompleta porem funcional.
 
 ## Getting Started
 
