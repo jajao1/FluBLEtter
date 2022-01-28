@@ -31,7 +31,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> write() async {
-    await flubletter.onCharacteristicWrite(uuidWrite: uniqueUID, data: 'LULA');
+    await flubletter.onCharacteristicWrite(uuidWrite: uniqueUID, data: 'byte');
   }
 
   void initScan() {
